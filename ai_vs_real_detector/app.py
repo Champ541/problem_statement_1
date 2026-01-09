@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import streamlit as st
 import torch
@@ -7,7 +8,9 @@ from torchvision import transforms
 from model import AIDetector
 from fft import fft_features
 
+# -----------------------------
 # Page config
+# -----------------------------
 st.set_page_config(
     page_title="AI vs Real Image Detector",
     page_icon="🧠",
@@ -17,30 +20,40 @@ st.set_page_config(
 st.title("🧠 AI vs Real Image Detector")
 st.write("Upload an image to check whether it is **AI-generated or Real**.")
 
+# -----------------------------
 # Device
+# -----------------------------
 device = torch.device("cpu")
 
-# Load model
+# -----------------------------
+# Load model (cached)
+# -----------------------------
 @st.cache_resource
 def load_model():
     model = AIDetector().to(device)
-    model.load_state_dict(
-    torch.load("ai_vs_real_detector/detector.pth", map_location=device)
+
+    MODEL_PATH = os.path.join(
+        os.path.dirname(__file__),
+        "detector.pth"
     )
 
-
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     model.eval()
     return model
 
 model = load_model()
 
+# -----------------------------
 # Image transform
+# -----------------------------
 transform = transforms.Compose([
-    transforms.Resize((224,224)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor()
 ])
 
+# -----------------------------
 # File uploader
+# -----------------------------
 uploaded_file = st.file_uploader(
     "📤 Upload an image",
     type=["jpg", "jpeg", "png"]
@@ -51,11 +64,11 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
-
-    # Convert for model
+    # Prepare image
     img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = Image.fromarray(img)
+
     img_tensor = transform(img).unsqueeze(0).to(device)
 
     # FFT features
@@ -81,6 +94,5 @@ if uploaded_file is not None:
     elif ai_prob < 30:
         st.success("High confidence: Real image")
     else:
-
         st.warning("⚠️ Uncertain prediction (ambiguous case)")
 
