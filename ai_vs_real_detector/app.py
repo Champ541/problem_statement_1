@@ -24,7 +24,10 @@ device = torch.device("cpu")
 @st.cache_resource
 def load_model():
     model = AIDetector().to(device)
-    model.load_state_dict(torch.load("detector.pth", map_location=device))
+    model.load_state_dict(
+    torch.load("ai_vs_real_detector/detector.pth", map_location=device)
+)
+
     model.eval()
     return model
 
@@ -77,4 +80,5 @@ if uploaded_file is not None:
     elif ai_prob < 30:
         st.success("High confidence: Real image")
     else:
+
         st.warning("⚠️ Uncertain prediction (ambiguous case)")
