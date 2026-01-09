@@ -26,7 +26,8 @@ def load_model():
     model = AIDetector().to(device)
     model.load_state_dict(
     torch.load("ai_vs_real_detector/detector.pth", map_location=device)
-)
+    )
+
 
     model.eval()
     return model
@@ -82,3 +83,4 @@ if uploaded_file is not None:
     else:
 
         st.warning("⚠️ Uncertain prediction (ambiguous case)")
+
